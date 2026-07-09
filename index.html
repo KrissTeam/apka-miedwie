@@ -2,12 +2,14 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
   <title>BeachBar Miedwie</title>
 
   <style>
     :root {
       --primary: #198754;
+      --primary-light: #e8f5e9;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --text-main: #0f172a;
@@ -15,7 +17,10 @@
       --border: #e2e8f0;
       --danger: #dc3545;
       --danger-light: #fde8e8;
+      --success: #198754;
       --success-light: #e8f5e9;
+      --info: #0284c7;
+      --info-light: #e0f2fe;
     }
 
     * {
@@ -28,45 +33,51 @@
     body {
       background: var(--bg);
       color: var(--text-main);
-      min-height: 100vh;
-      padding: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding-bottom: 80px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .screen {
+      display: none;
+      padding: 16px;
+    }
+
+    .screen.active {
+      display: block;
     }
 
     .card {
-      width: 100%;
-      max-width: 420px;
       background: var(--card-bg);
-      border-radius: 22px;
-      padding: 24px;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
       border: 1px solid var(--border);
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      text-align: center;
-    }
-
-    .logo {
-      font-size: 42px;
-      margin-bottom: 8px;
     }
 
     h1 {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 900;
-      margin-bottom: 8px;
+      text-align: center;
+      margin-bottom: 10px;
     }
 
-    p {
-      font-size: 15px;
+    h2 {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
       color: var(--text-muted);
-      font-weight: 600;
-      margin-bottom: 18px;
+      margin: 20px 0 8px 0;
     }
 
-    select {
+    select, input, textarea {
       width: 100%;
-      height: 52px;
       padding: 0 16px;
       border-radius: 12px;
       border: 2px solid var(--border);
@@ -74,10 +85,23 @@
       font-weight: 700;
       background: white;
       outline: none;
-      margin-bottom: 12px;
     }
 
-    button {
+    select, input {
+      height: 52px;
+    }
+
+    textarea {
+      min-height: 140px;
+      padding-top: 14px;
+      resize: vertical;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-action {
       width: 100%;
       height: 52px;
       background: var(--primary);
@@ -86,136 +110,1154 @@
       border-radius: 14px;
       font-size: 16px;
       font-weight: 900;
+      margin-top: 10px;
       cursor: pointer;
     }
 
     .btn-danger {
       background: var(--danger);
-      margin-top: 12px;
     }
 
-    #result {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 12px;
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      height: 100%;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      font-size: 11px;
       font-weight: 800;
+      cursor: pointer;
+    }
+
+    .nav-item .icon {
+      font-size: 22px;
+      margin-bottom: 3px;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 900;
+      display: inline-block;
+    }
+
+    .badge.danger {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .badge.success {
+      background: var(--success-light);
+      color: var(--success);
+    }
+
+    .badge.info {
+      background: var(--info-light);
+      color: var(--info);
+    }
+
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .weekday-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .day-btn {
+      height: 50px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 900;
+      background: #e2e8f0;
+      color: var(--text-main);
+      position: relative;
+    }
+
+    .day-btn.weekend {
+      background: #ffedd5;
+      color: #9a3412;
+    }
+
+    .day-btn.status-lots {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .day-btn.status-few {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .day-btn.status-none {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .day-btn.state-absent {
+      background: var(--danger) !important;
+      color: white !important;
+    }
+
+    .day-btn.state-duty {
+      background: var(--success) !important;
+      color: white !important;
+    }
+
+    .day-btn.state-duty::after {
+      content: '💼';
+      font-size: 9px;
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 5px;
+      text-align: center;
+      min-width: 42px;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    th.emp-col,
+    td.emp-col {
+      position: sticky;
+      left: 0;
+      background: #fff;
+      font-weight: 900;
+      text-align: left;
+      min-width: 110px;
+      z-index: 2;
+      border-right: 2px solid var(--border);
+    }
+
+    td.has-absence {
+      background: var(--danger) !important;
+      color: white !important;
+      font-weight: 900;
+    }
+
+    td.has-duty {
+      background: var(--success) !important;
+      color: white !important;
+      font-weight: 900;
+    }
+
+    td.clickable-cell {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .today-col {
+      background: #fff8cc !important;
+    }
+
+    .weekend-cell,
+    .weekend-head {
+      background: #ffedd5 !important;
+    }
+
+    #toast {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-40px);
+      background: #1e293b;
+      color: white;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 900;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 10000;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #loginScreen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: white;
+      border-radius: 22px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(15,23,42,.08);
+    }
+
+    .login-logo {
+      text-align: center;
+      font-size: 42px;
+      margin-bottom: 6px;
+    }
+
+    .logout-bar {
       display: none;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin: 12px;
+      padding: 10px 12px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .logout-btn {
+      border: none;
+      background: var(--danger-light);
+      color: var(--danger);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100000;
+      visibility: hidden;
+      opacity: 0;
+    }
+
+    .modal-overlay.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .modal-box {
+      background: white;
+      padding: 24px;
+      border-radius: 20px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .pin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .pin-btn {
+      height: 54px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .report-card {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      background: white;
     }
 
     .hidden {
-      display: none;
+      display: none !important;
     }
   </style>
 </head>
 
 <body>
+  <div id="toast">Komunikat</div>
 
-  <div id="loginView" class="card">
-    <div class="logo">🌊</div>
-    <h1>BeachBar Miedwie</h1>
-    <p>Nowa aplikacja GitHub — pobieranie pracowników z arkusza</p>
-
-    <select id="employeeSelect">
-      <option value="">Ładowanie pracowników...</option>
-    </select>
-
-    <button onclick="enterApp()">Wejdź do aplikacji</button>
-
-    <div id="result"></div>
+  <div id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">🌊</div>
+      <h1>BeachBar Miedwie</h1>
+      <p style="text-align:center;">Wybierz pracownika</p>
+      <select id="loginEmployeeSelect">
+        <option>Ładowanie...</option>
+      </select>
+      <button class="btn-action" onclick="enterApp()">Wejdź do aplikacji</button>
+    </div>
   </div>
 
-  <div id="appView" class="card hidden">
-    <div class="logo">🌊</div>
-    <h1 id="welcomeTitle">Cześć 👋</h1>
-    <p>Jesteś w nowej aplikacji BeachBar Miedwie.</p>
-
-    <button class="btn-danger" onclick="logout()">Wyloguj</button>
+  <div id="pinModal" class="modal-overlay">
+    <div class="modal-box">
+      <div style="font-size: 32px; margin-bottom: 8px;">🔒</div>
+      <div style="font-size: 18px; font-weight: 900;">Autoryzacja Szefa</div>
+      <input type="password" id="pinDisplay" readonly style="text-align:center; font-size:24px; letter-spacing:12px; margin:16px 0;">
+      <div class="pin-grid">
+        <button class="pin-btn" onclick="pressPin('1')">1</button>
+        <button class="pin-btn" onclick="pressPin('2')">2</button>
+        <button class="pin-btn" onclick="pressPin('3')">3</button>
+        <button class="pin-btn" onclick="pressPin('4')">4</button>
+        <button class="pin-btn" onclick="pressPin('5')">5</button>
+        <button class="pin-btn" onclick="pressPin('6')">6</button>
+        <button class="pin-btn" onclick="pressPin('7')">7</button>
+        <button class="pin-btn" onclick="pressPin('8')">8</button>
+        <button class="pin-btn" onclick="pressPin('9')">9</button>
+        <button class="pin-btn" style="background:var(--danger-light); color:var(--danger);" onclick="clearPin()">C</button>
+        <button class="pin-btn" onclick="pressPin('0')">0</button>
+        <button class="pin-btn" onclick="closePinModal()">X</button>
+      </div>
+    </div>
   </div>
+
+  <div id="logoutBar" class="logout-bar">
+    <span id="loggedUserLabel">👤</span>
+    <button class="logout-btn" onclick="logout()">Wyloguj</button>
+  </div>
+
+  <div id="screen-moje-dni" class="screen">
+    <div class="card">
+      <h2 id="helloText">Cześć! 👋</h2>
+      <div class="data-row">
+        <span>Zgłoszone wolne:</span>
+        <span id="userAbsenceCount" class="badge danger">0 dni</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:16px; color:var(--danger);">❌ Najbliższe dni wolne</h2>
+      <div id="userNextAbsences" style="font-size:14px; color:var(--text-muted);">Brak danych</div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:16px; color:var(--success);">💼 Najbliższe dyżury</h2>
+      <div id="userNextDuties" style="font-size:14px; color:var(--text-muted);">Brak danych</div>
+    </div>
+
+    <button class="btn-action" onclick="switchTab('wolne')">➕ Dodaj dzień wolny</button>
+  </div>
+
+  <div id="screen-raport" class="screen">
+    <div class="card">
+      <h2>📝 Raport dnia</h2>
+
+      <label style="font-size:13px; font-weight:900; color:var(--text-muted); display:block; margin-bottom:6px;">
+        Data pracy
+      </label>
+      <input type="date" id="reportDate" style="margin-bottom:12px;">
+
+      <label style="font-size:13px; font-weight:900; color:var(--text-muted); display:block; margin-bottom:6px;">
+        Opis dnia
+      </label>
+      <input type="text" id="reportShortDescription" placeholder="Np. spokojny dzień, dużo klientów..." style="margin-bottom:12px;">
+
+      <label style="font-size:13px; font-weight:900; color:var(--text-muted); display:block; margin-bottom:6px;">
+        Raport / wykonane prace
+      </label>
+      <textarea id="reportText" placeholder="Opisz, co było robione w pracy..."></textarea>
+
+      <button class="btn-action" onclick="sendReport()">✅ Wyślij raport</button>
+    </div>
+  </div>
+
+  <div id="screen-wolne" class="screen">
+    <div class="card">
+      <h2>➕ Zgłoś wolne</h2>
+      <div id="absenceCalendarContainer"></div>
+    </div>
+    <button class="btn-action" onclick="triggerSaveData()">💾 Zapisz wolne</button>
+  </div>
+
+  <div id="screen-zespol" class="screen">
+    <div class="card">
+      <h2>📊 Grafik zespołu</h2>
+      <div class="table-container" id="matrixContainerPracownik"></div>
+    </div>
+  </div>
+
+  <div id="screen-szef-dzien" class="screen">
+    <div class="card">
+      <h2>📅 Zarządzanie dniem</h2>
+      <select id="bossDayFocusSelect" onchange="renderBossDayView()" style="margin-bottom:16px;"></select>
+      <div id="bossDayStatsContainer"></div>
+    </div>
+  </div>
+
+  <div id="screen-szef-pracownicy" class="screen">
+    <div class="card">
+      <h2>👥 Statystyki pracowników</h2>
+      <input type="text" id="bossEmployeeSearch" placeholder="🔍 Szukaj..." oninput="renderBossEmployeesView()" style="margin-bottom:12px;">
+      <div id="bossEmployeesListContainer"></div>
+    </div>
+  </div>
+
+  <div id="screen-szef-grafik" class="screen">
+    <div class="card">
+      <h2>💼 Przydział dyżurów</h2>
+      <div id="bossSchedulingCalendarContainer"></div>
+    </div>
+    <button class="btn-action" onclick="triggerSaveData()">💾 Zapisz zmiany szefa</button>
+  </div>
+
+  <div id="screen-szef-raporty" class="screen">
+    <div class="card">
+      <h2>📋 Raporty pracowników</h2>
+      <div id="bossReportsContainer">Ładowanie raportów...</div>
+    </div>
+  </div>
+
+  <div id="screen-szef-macierz" class="screen">
+    <div class="card">
+      <h2>📊 Macierz</h2>
+      <div class="table-container" id="matrixContainerSzef"></div>
+    </div>
+    <button class="btn-action" onclick="triggerSaveData()">💾 Zapisz całą macierz</button>
+  </div>
+
+  <nav class="bottom-nav" id="mainBottomNav"></nav>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycby6rQK89ooACcz7faroqmdpkGauP9MQl6y6e93PD6lhM0JIGPC5qE4RpBl7A6KMtgb6/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxx8dsoMvznNMiroDPU-I4h3iw-Bm25oE6JJwnSN943BwzrRyz_ElmSyAYi1vV4QUrJ/exec';
+
+    let employeesList = [];
+    let calendarDays = [];
+    let allEmployeesData = {};
+    let currentAbsences = [];
+    let forcedDuties = [];
+    let isBossMode = false;
+    let bossTargetEmployee = '';
+    let currentEmployee = '';
+    let currentTab = 'moje-dni';
+    let pinBuffer = '';
+    let weatherForecast = {};
+
+    const employeeTabs = [
+      { id: 'moje-dni', label: 'Moje dni', icon: '🏠' },
+      { id: 'wolne', label: 'Wolne', icon: '➕' },
+      { id: 'raport', label: 'Raport', icon: '📝' },
+      { id: 'zespol', label: 'Zespół', icon: '📊' }
+    ];
+
+    const bossTabs = [
+      { id: 'szef-dzien', label: 'Dzień', icon: '📅' },
+      { id: 'szef-pracownicy', label: 'Pracownicy', icon: '👥' },
+      { id: 'szef-grafik', label: 'Grafik', icon: '💼' },
+      { id: 'szef-macierz', label: 'Macierz', icon: '📊' },
+      { id: 'szef-raporty', label: 'Raporty', icon: '📋' }
+    ];
+
+    const dayNamesPL = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb'];
 
     window.onload = function() {
-      loadEmployees();
-      checkSavedEmployee();
+      loadBootstrap();
     };
 
-    function showMessage(text, type) {
-      const result = document.getElementById('result');
-      result.style.display = 'block';
-
-      if (type === 'error') {
-        result.style.background = '#fde8e8';
-        result.style.color = '#dc3545';
-      } else {
-        result.style.background = '#e8f5e9';
-        result.style.color = '#198754';
-      }
-
-      result.innerText = text;
-    }
-
-    function loadEmployees() {
-      const select = document.getElementById('employeeSelect');
-
-      fetch(API_URL + '?action=getEmployees')
+    function apiGet(action) {
+      return fetch(API_URL + '?action=' + encodeURIComponent(action))
         .then(response => response.json())
-        .then(employees => {
-          select.innerHTML = '<option value="">Wybierz pracownika...</option>';
-
-          employees.forEach(function(emp) {
-            const option = document.createElement('option');
-            option.value = emp;
-            option.textContent = emp;
-            select.appendChild(option);
-          });
-
-          const savedEmployee = localStorage.getItem('employee');
-          if (savedEmployee) {
-            select.value = savedEmployee;
+        .then(json => {
+          if (!json.success) {
+            throw new Error(json.message || 'Błąd API');
           }
-        })
-        .catch(error => {
-          select.innerHTML = '<option value="">Błąd ładowania</option>';
-          showMessage('❌ Nie udało się pobrać pracowników.', 'error');
-          console.error(error);
+          return json.data;
         });
     }
 
-    function checkSavedEmployee() {
-      const savedEmployee = localStorage.getItem('employee');
+    function apiPost(action, payload) {
+      return fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({
+          action: action,
+          payload: payload
+        })
+      })
+      .then(response => response.json())
+      .then(json => {
+        if (!json.success) {
+          throw new Error(json.message || 'Błąd API');
+        }
+        return json;
+      });
+    }
 
-      if (savedEmployee) {
-        showAppView(savedEmployee);
+    function loadBootstrap() {
+      showToast('⏳ Ładowanie aplikacji...');
+
+      apiGet('getBootstrap')
+        .then(data => {
+          employeesList = data.employees || [];
+          calendarDays = data.calendarDays || [];
+          allEmployeesData = data.allEmployeesData || {};
+          weatherForecast = data.weather || {};
+
+          buildEmployeeSelector();
+          buildBossDaySelect();
+          buildNavigation();
+
+          const saved = localStorage.getItem('employee');
+          if (saved) {
+            if (saved === 'BOSS_MODE') {
+              isBossMode = true;
+              currentEmployee = 'BOSS_MODE';
+              bossTargetEmployee = employeesList[0] || '';
+              document.getElementById('loginScreen').style.display = 'none';
+              document.getElementById('logoutBar').style.display = 'flex';
+              document.getElementById('loggedUserLabel').innerText = '👑 Szef';
+              setupActiveEmployeeData(bossTargetEmployee);
+              switchTab('szef-dzien');
+            } else {
+              currentEmployee = saved;
+              document.getElementById('loginEmployeeSelect').value = saved;
+              enterEmployee(saved);
+            }
+          } else {
+            switchTab('moje-dni');
+          }
+        })
+        .catch(error => {
+          showToast('❌ Błąd ładowania: ' + error.message);
+        });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function buildEmployeeSelector() {
+      const loginSelect = document.getElementById('loginEmployeeSelect');
+      loginSelect.innerHTML = '<option value="">Wybierz pracownika...</option><option value="BOSS_MODE">👑 PANEL SZEFA</option>';
+
+      employeesList.forEach(emp => {
+        const option = document.createElement('option');
+        option.value = emp;
+        option.textContent = emp;
+        loginSelect.appendChild(option);
+      });
+    }
+
+    function buildBossDaySelect() {
+      const s = document.getElementById('bossDayFocusSelect');
+      if (!s) return;
+
+      s.innerHTML = '';
+
+      calendarDays.forEach(d => {
+        const option = document.createElement('option');
+        option.value = d.value;
+        option.textContent = formatToPolishDateLong(d.value);
+        s.appendChild(option);
+      });
+
+      const today = getTodayDateStringPL();
+      if (calendarDays.some(d => d.value === today)) {
+        s.value = today;
       }
     }
 
     function enterApp() {
-      const employee = document.getElementById('employeeSelect').value;
+      const selected = document.getElementById('loginEmployeeSelect').value;
 
-      if (!employee) {
-        showMessage('⚠️ Wybierz pracownika', 'error');
+      if (!selected) {
+        showToast('⚠️ Wybierz pracownika');
         return;
       }
 
-      localStorage.setItem('employee', employee);
-      showAppView(employee);
+      if (selected === 'BOSS_MODE') {
+        openPinModal();
+        return;
+      }
+
+      enterEmployee(selected);
     }
 
-    function showAppView(employee) {
-      document.getElementById('loginView').classList.add('hidden');
-      document.getElementById('appView').classList.remove('hidden');
-      document.getElementById('welcomeTitle').innerText = 'Cześć ' + employee + ' 👋';
+    function enterEmployee(employee) {
+      isBossMode = false;
+      currentEmployee = employee;
+      localStorage.setItem('employee', employee);
+
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('logoutBar').style.display = 'flex';
+      document.getElementById('loggedUserLabel').innerText = '👤 ' + employee;
+
+      setupActiveEmployeeData(employee);
+      switchTab('moje-dni');
     }
 
     function logout() {
       localStorage.removeItem('employee');
+      isBossMode = false;
+      currentEmployee = '';
+      bossTargetEmployee = '';
+      currentAbsences = [];
+      forcedDuties = [];
 
-      document.getElementById('appView').classList.add('hidden');
-      document.getElementById('loginView').classList.remove('hidden');
+      document.getElementById('logoutBar').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('loginEmployeeSelect').value = '';
 
-      document.getElementById('employeeSelect').value = '';
-      document.getElementById('result').style.display = 'none';
+      switchTab('moje-dni');
+    }
+
+    function openPinModal() {
+      pinBuffer = '';
+      document.getElementById('pinDisplay').value = '';
+      document.getElementById('pinModal').classList.add('show');
+    }
+
+    function closePinModal() {
+      document.getElementById('pinModal').classList.remove('show');
+      clearPin();
+    }
+
+    function clearPin() {
+      pinBuffer = '';
+      document.getElementById('pinDisplay').value = '';
+    }
+
+    function pressPin(n) {
+      if (pinBuffer.length < 4) {
+        pinBuffer += n;
+        document.getElementById('pinDisplay').value = pinBuffer;
+      }
+
+      if (pinBuffer.length === 4) {
+        if (pinBuffer === '1981') {
+          isBossMode = true;
+          currentEmployee = 'BOSS_MODE';
+          bossTargetEmployee = employeesList[0] || '';
+
+          localStorage.setItem('employee', 'BOSS_MODE');
+
+          document.getElementById('pinModal').classList.remove('show');
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('logoutBar').style.display = 'flex';
+          document.getElementById('loggedUserLabel').innerText = '👑 Szef';
+
+          setupActiveEmployeeData(bossTargetEmployee);
+          switchTab('szef-dzien');
+        } else {
+          showToast('❌ Kod PIN niepoprawny');
+          clearPin();
+        }
+      }
+    }
+
+    function setupActiveEmployeeData(employee) {
+      const data = allEmployeesData[employee] || { absences: [], duties: [] };
+      currentAbsences = [...(data.absences || [])];
+      forcedDuties = [...(data.duties || [])];
+    }
+
+    function buildNavigation() {
+      const nav = document.getElementById('mainBottomNav');
+      nav.innerHTML = '';
+
+      const tabs = isBossMode ? bossTabs : employeeTabs;
+
+      tabs.forEach(tab => {
+        const b = document.createElement('button');
+        b.className = 'nav-item ' + (currentTab === tab.id ? 'active' : '');
+        b.onclick = () => switchTab(tab.id);
+        b.innerHTML = `<span class="icon">${tab.icon}</span><span>${tab.label}</span>`;
+        nav.appendChild(b);
+      });
+    }
+
+    function switchTab(id) {
+      currentTab = id;
+
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+
+      const target = document.getElementById('screen-' + id);
+      if (target) target.classList.add('active');
+
+      buildNavigation();
+      renderCurrentTabView();
+    }
+
+    function renderCurrentTabView() {
+      const user = isBossMode ? bossTargetEmployee : currentEmployee;
+
+      if (currentTab === 'raport') {
+        const dateInput = document.getElementById('reportDate');
+        if (dateInput && !dateInput.value) {
+          dateInput.value = getTodayDateStringPL();
+        }
+      }
+
+      if (currentTab === 'moje-dni') {
+        if (!user || isBossMode) return;
+
+        document.getElementById('helloText').innerText = 'Cześć ' + user + ' 👋';
+        document.getElementById('userAbsenceCount').innerText = currentAbsences.length + ' dni';
+        document.getElementById('userNextAbsences').innerHTML = currentAbsences.length ? currentAbsences.map(d => '❌ ' + d).join('<br>') : 'Brak wolnych dni.';
+        document.getElementById('userNextDuties').innerHTML = forcedDuties.length ? forcedDuties.map(d => '💼 ' + d).join('<br>') : 'Brak dyżurów.';
+      }
+
+      else if (currentTab === 'wolne') renderStandardCalendar('absenceCalendarContainer', true, false);
+      else if (currentTab === 'zespol') renderMatrixView('matrixContainerPracownik', false);
+      else if (currentTab === 'szef-dzien') renderBossDayView();
+      else if (currentTab === 'szef-pracownicy') renderBossEmployeesView();
+      else if (currentTab === 'szef-grafik') renderStandardCalendar('bossSchedulingCalendarContainer', false, true);
+      else if (currentTab === 'szef-macierz') renderMatrixView('matrixContainerSzef', true);
+      else if (currentTab === 'szef-raporty') renderBossReportsView();
+    }
+
+    function renderStandardCalendar(containerId, isInteractive, isBossDuty) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      let currentMonth = '';
+      let grid = null;
+
+      calendarDays.forEach(day => {
+        if (day.month !== currentMonth) {
+          currentMonth = day.month;
+
+          const title = document.createElement('h3');
+          title.textContent = currentMonth;
+          container.appendChild(title);
+
+          const header = document.createElement('div');
+          header.className = 'weekday-header';
+          ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'].forEach(w => {
+            const d = document.createElement('div');
+            d.textContent = w;
+            header.appendChild(d);
+          });
+
+          container.appendChild(header);
+
+          grid = document.createElement('div');
+          grid.className = 'days';
+          container.appendChild(grid);
+
+          const firstDate = new Date(day.value + 'T12:00:00');
+          let offset = firstDate.getDay();
+          offset = offset === 0 ? 6 : offset - 1;
+
+          for (let i = 0; i < offset; i++) {
+            grid.appendChild(document.createElement('div'));
+          }
+        }
+
+        const btn = document.createElement('button');
+        btn.className = 'day-btn';
+        btn.textContent = parseInt(day.day);
+
+        const jsDate = new Date(day.value + 'T12:00:00');
+        const isWeekend = jsDate.getDay() === 0 || jsDate.getDay() === 6;
+
+        if (isWeekend) btn.classList.add('weekend');
+
+        let absCount = 0;
+        employeesList.forEach(emp => {
+          if (allEmployeesData[emp]?.absences?.includes(day.value)) absCount++;
+        });
+
+        const working = employeesList.length - absCount;
+        const minReq = isWeekend ? 11 : 8;
+
+        if (working < minReq) btn.classList.add('status-none');
+        else if (working === minReq) btn.classList.add('status-few');
+        else btn.classList.add('status-lots');
+
+        if (forcedDuties.includes(day.value)) btn.classList.add('state-duty');
+        else if (currentAbsences.includes(day.value)) btn.classList.add('state-absent');
+
+        btn.onclick = function() {
+          const employee = isBossMode ? bossTargetEmployee : currentEmployee;
+
+          if (!employee) {
+            showToast('⚠️ Brak pracownika');
+            return;
+          }
+
+          if (!allEmployeesData[employee]) {
+            allEmployeesData[employee] = { absences: [], duties: [] };
+          }
+
+          if (isBossDuty) {
+            if (forcedDuties.includes(day.value)) {
+              forcedDuties = forcedDuties.filter(d => d !== day.value);
+            } else {
+              forcedDuties.push(day.value);
+              currentAbsences = currentAbsences.filter(d => d !== day.value);
+            }
+
+            allEmployeesData[employee].duties = forcedDuties;
+            allEmployeesData[employee].absences = currentAbsences;
+            renderCurrentTabView();
+          }
+
+          else if (isInteractive) {
+            if (forcedDuties.includes(day.value)) {
+              showToast('🔒 Ten dzień jest dyżurem');
+              return;
+            }
+
+            if (currentAbsences.includes(day.value)) {
+              currentAbsences = currentAbsences.filter(d => d !== day.value);
+            } else {
+              if (working <= minReq) {
+                showToast('❌ Brak wolnych miejsc. Minimum: ' + minReq);
+                return;
+              }
+
+              currentAbsences.push(day.value);
+            }
+
+            allEmployeesData[employee].absences = currentAbsences;
+            renderCurrentTabView();
+          }
+        };
+
+        grid.appendChild(btn);
+      });
+    }
+
+    function renderMatrixView(containerId, isInteractiveBoss) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      const table = document.createElement('table');
+
+      const header = document.createElement('tr');
+      const thName = document.createElement('th');
+      thName.className = 'emp-col';
+      thName.textContent = 'PRACOWNIK';
+      header.appendChild(thName);
+
+      calendarDays.forEach(d => {
+        const th = document.createElement('th');
+        th.textContent = parseInt(d.day);
+        const jsDate = new Date(d.value + 'T12:00:00');
+        if (jsDate.getDay() === 0 || jsDate.getDay() === 6) th.classList.add('weekend-head');
+        header.appendChild(th);
+      });
+
+      table.appendChild(header);
+
+      employeesList.forEach(emp => {
+        const tr = document.createElement('tr');
+
+        const tdName = document.createElement('td');
+        tdName.className = 'emp-col';
+        tdName.textContent = emp;
+        tr.appendChild(tdName);
+
+        calendarDays.forEach(d => {
+          const td = document.createElement('td');
+          td.className = 'clickable-cell';
+
+          const jsDate = new Date(d.value + 'T12:00:00');
+          if (jsDate.getDay() === 0 || jsDate.getDay() === 6) td.classList.add('weekend-cell');
+
+          if (allEmployeesData[emp]?.duties?.includes(d.value)) {
+            td.textContent = '1';
+            td.classList.add('has-duty');
+          } else if (allEmployeesData[emp]?.absences?.includes(d.value)) {
+            td.textContent = 'X';
+            td.classList.add('has-absence');
+          } else {
+            td.textContent = '•';
+          }
+
+          if (isInteractiveBoss) {
+            td.onclick = function() {
+              if (!allEmployeesData[emp]) {
+                allEmployeesData[emp] = { absences: [], duties: [] };
+              }
+
+              const hasDuty = allEmployeesData[emp].duties.includes(d.value);
+              const hasAbsence = allEmployeesData[emp].absences.includes(d.value);
+
+              if (!hasDuty && !hasAbsence) {
+                allEmployeesData[emp].duties.push(d.value);
+              } else if (hasDuty) {
+                allEmployeesData[emp].duties = allEmployeesData[emp].duties.filter(x => x !== d.value);
+                allEmployeesData[emp].absences.push(d.value);
+              } else {
+                allEmployeesData[emp].absences = allEmployeesData[emp].absences.filter(x => x !== d.value);
+              }
+
+              renderMatrixView(containerId, isInteractiveBoss);
+            };
+          }
+
+          tr.appendChild(td);
+        });
+
+        table.appendChild(tr);
+      });
+
+      container.appendChild(table);
+
+      const today = getTodayDateStringPL();
+      table.querySelectorAll('tr').forEach(row => {
+        calendarDays.forEach((d, index) => {
+          if (d.value === today && row.children[index + 1]) {
+            row.children[index + 1].classList.add('today-col');
+          }
+        });
+      });
+    }
+
+    function renderBossDayView() {
+      const container = document.getElementById('bossDayStatsContainer');
+      const date = document.getElementById('bossDayFocusSelect').value;
+
+      if (!container || !date) return;
+
+      let abs = [];
+      let duties = [];
+
+      employeesList.forEach(emp => {
+        if (allEmployeesData[emp]?.duties?.includes(date)) duties.push(emp);
+        else if (allEmployeesData[emp]?.absences?.includes(date)) abs.push(emp);
+      });
+
+      const jsDate = new Date(date + 'T12:00:00');
+      const minReq = (jsDate.getDay() === 0 || jsDate.getDay() === 6) ? 11 : 8;
+      const available = employeesList.length - abs.length;
+
+      container.innerHTML = `
+        <div class="data-row"><span>W pracy:</span><span class="badge info">${available} os.</span></div>
+        <div class="data-row"><span>Wymagane:</span><span class="badge">${minReq} os.</span></div>
+        <div class="data-row"><span>Status:</span>${available < minReq ? '<span class="badge danger">⚠️ BRAKI</span>' : '<span class="badge success">✅ OK</span>'}</div>
+        <h3>❌ Nieobecni (${abs.length})</h3>
+        <div>${abs.join(', ') || 'Brak'}</div>
+        <h3>💼 Dyżury (${duties.length})</h3>
+        <div>${duties.join(', ') || 'Brak'}</div>
+      `;
+    }
+
+    function renderBossEmployeesView() {
+      const container = document.getElementById('bossEmployeesListContainer');
+      const input = document.getElementById('bossEmployeeSearch');
+      const q = input ? input.value.toLowerCase() : '';
+
+      container.innerHTML = '';
+
+      employeesList.filter(emp => emp.toLowerCase().includes(q)).forEach(emp => {
+        const div = document.createElement('div');
+        div.style.cssText = 'padding:12px; border:1px solid var(--border); margin-bottom:6px; border-radius:8px; background:' + (emp === bossTargetEmployee ? 'var(--primary-light)' : '#fff');
+        div.onclick = function() {
+          bossTargetEmployee = emp;
+          setupActiveEmployeeData(emp);
+          showToast('👤 Wybrano: ' + emp);
+        };
+        div.innerHTML = `<strong>${emp}</strong><br><span style="font-size:12px; color:var(--text-muted)">Wolne: ${allEmployeesData[emp]?.absences?.length || 0} | Dyżury: ${allEmployeesData[emp]?.duties?.length || 0}</span>`;
+        container.appendChild(div);
+      });
+    }
+
+    function renderBossReportsView() {
+      const container = document.getElementById('bossReportsContainer');
+      container.innerHTML = '⏳ Ładowanie raportów...';
+
+      apiGet('getBossReports')
+        .then(reports => {
+          if (!reports || reports.length === 0) {
+            container.innerHTML = 'Brak raportów.';
+            return;
+          }
+
+          container.innerHTML = '';
+
+          reports.forEach(r => {
+            const div = document.createElement('div');
+            div.className = 'report-card';
+
+            div.innerHTML = `
+              <div style="font-weight:900; font-size:15px; margin-bottom:4px;">👤 ${r.pracownik || '-'}</div>
+              <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">
+                📅 Data pracy: ${r.dataPracy || '-'} ${r.dzienTygodnia ? ' | ' + r.dzienTygodnia : ''}<br>
+                🕒 Wysłano: ${r.dataWyslania || '-'} ${r.godzinaWyslania || ''}
+              </div>
+              <div style="font-weight:900; margin-bottom:4px;">Opis dnia:</div>
+              <div style="margin-bottom:8px;">${r.opisDnia || '-'}</div>
+              <div style="font-weight:900; margin-bottom:4px;">Raport:</div>
+              <div style="white-space:pre-wrap;">${r.raport || '-'}</div>
+              <div style="margin-top:8px;"><span class="badge success">${r.status || 'WYSŁANE'}</span></div>
+            `;
+
+            container.appendChild(div);
+          });
+        })
+        .catch(error => {
+          container.innerHTML = '❌ Błąd pobierania raportów: ' + error.message;
+        });
+    }
+
+    function sendReport() {
+      const date = document.getElementById('reportDate').value;
+      const shortDescription = document.getElementById('reportShortDescription').value.trim();
+      const reportText = document.getElementById('reportText').value.trim();
+
+      if (!currentEmployee || currentEmployee === 'BOSS_MODE') {
+        showToast('⚠️ Brak pracownika');
+        return;
+      }
+
+      if (!date) {
+        showToast('⚠️ Wybierz datę pracy');
+        return;
+      }
+
+      if (!shortDescription && !reportText) {
+        showToast('⚠️ Wpisz opis lub raport');
+        return;
+      }
+
+      showToast('⏳ Wysyłanie raportu...');
+
+      apiPost('saveReport', {
+        employee: currentEmployee,
+        date: date,
+        shortDescription: shortDescription,
+        reportText: reportText
+      })
+      .then(() => {
+        showToast('✅ Raport wysłany');
+        document.getElementById('reportShortDescription').value = '';
+        document.getElementById('reportText').value = '';
+      })
+      .catch(error => {
+        showToast('❌ Błąd raportu: ' + error.message);
+      });
+    }
+
+    function triggerSaveData() {
+      if (isBossMode) {
+        showToast('⏳ Zapisywanie macierzy...');
+
+        apiPost('saveAllMatrixData', {
+          allData: allEmployeesData
+        })
+        .then(() => showToast('✅ Macierz zapisana'))
+        .catch(error => showToast('❌ Błąd zapisu: ' + error.message));
+      } else {
+        if (!currentEmployee) return;
+
+        showToast('⏳ Zapisywanie wolnego...');
+
+        apiPost('saveAbsences', {
+          employee: currentEmployee,
+          dates: currentAbsences
+        })
+        .then(() => showToast('✅ Wolne zapisane'))
+        .catch(error => showToast('❌ Błąd zapisu: ' + error.message));
+      }
+    }
+
+    function formatToPolishDateLong(dateStr) {
+      const days = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
+      const months = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września'];
+      const date = new Date(dateStr + 'T12:00:00');
+      if (isNaN(date.getTime())) return dateStr;
+      return days[date.getDay()] + ' ' + date.getDate() + ' ' + months[date.getMonth()];
+    }
+
+    function getTodayDateStringPL() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      return yyyy + '-' + mm + '-' + dd;
     }
   </script>
 </body>
