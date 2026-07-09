@@ -13,6 +13,9 @@
       --text-main: #0f172a;
       --text-muted: #64748b;
       --border: #e2e8f0;
+      --danger: #dc3545;
+      --danger-light: #fde8e8;
+      --success-light: #e8f5e9;
     }
 
     * {
@@ -90,8 +93,6 @@
       margin-top: 16px;
       padding: 12px;
       border-radius: 12px;
-      background: #e8f5e9;
-      color: #198754;
       font-weight: 800;
       display: none;
     }
@@ -102,14 +103,10 @@
   <div class="card">
     <div class="logo">🌊</div>
     <h1>BeachBar Miedwie</h1>
-    <p>Nowa aplikacja GitHub — test startowy</p>
+    <p>Nowa aplikacja GitHub — pobieranie pracowników z arkusza</p>
 
     <select id="employeeSelect">
-      <option value="">Wybierz pracownika...</option>
-      <option value="ANIA">ANIA</option>
-      <option value="JULIA">JULIA</option>
-      <option value="WERONIKA">WERONIKA</option>
-      <option value="DYREKTOR">DYREKTOR</option>
+      <option value="">Ładowanie pracowników...</option>
     </select>
 
     <button onclick="enterApp()">Wejdź do aplikacji</button>
@@ -118,22 +115,58 @@
   </div>
 
   <script>
-    function enterApp() {
-      const employee = document.getElementById('employeeSelect').value;
-      const result = document.getElementById('result');
+    const API_URL = 'https://script.google.com/macros/s/AKfycby6rQK89ooACcz7faroqmdpkGauP9MQl6y6e93PD6lhM0JIGPC5qE4RpBl7A6KMtgb6/exec';
 
-      if (!employee) {
-        result.style.display = 'block';
+    window.onload = function() {
+      loadEmployees();
+    };
+
+    function showMessage(text, type) {
+      const result = document.getElementById('result');
+      result.style.display = 'block';
+
+      if (type === 'error') {
         result.style.background = '#fde8e8';
         result.style.color = '#dc3545';
-        result.innerText = '⚠️ Wybierz pracownika';
+      } else {
+        result.style.background = '#e8f5e9';
+        result.style.color = '#198754';
+      }
+
+      result.innerText = text;
+    }
+
+    function loadEmployees() {
+      const select = document.getElementById('employeeSelect');
+
+      fetch(API_URL + '?action=getEmployees')
+        .then(response => response.json())
+        .then(employees => {
+          select.innerHTML = '<option value="">Wybierz pracownika...</option>';
+
+          employees.forEach(function(emp) {
+            const option = document.createElement('option');
+            option.value = emp;
+            option.textContent = emp;
+            select.appendChild(option);
+          });
+        })
+        .catch(error => {
+          select.innerHTML = '<option value="">Błąd ładowania</option>';
+          showMessage('❌ Nie udało się pobrać pracowników.', 'error');
+          console.error(error);
+        });
+    }
+
+    function enterApp() {
+      const employee = document.getElementById('employeeSelect').value;
+
+      if (!employee) {
+        showMessage('⚠️ Wybierz pracownika', 'error');
         return;
       }
 
-      result.style.display = 'block';
-      result.style.background = '#e8f5e9';
-      result.style.color = '#198754';
-      result.innerText = '✅ Wybrano: ' + employee;
+      showMessage('✅ Wybrano: ' + employee, 'success');
     }
   </script>
 </body>
