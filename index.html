@@ -89,6 +89,11 @@
       cursor: pointer;
     }
 
+    .btn-danger {
+      background: var(--danger);
+      margin-top: 12px;
+    }
+
     #result {
       margin-top: 16px;
       padding: 12px;
@@ -96,11 +101,16 @@
       font-weight: 800;
       display: none;
     }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 
 <body>
-  <div class="card">
+
+  <div id="loginView" class="card">
     <div class="logo">🌊</div>
     <h1>BeachBar Miedwie</h1>
     <p>Nowa aplikacja GitHub — pobieranie pracowników z arkusza</p>
@@ -114,11 +124,20 @@
     <div id="result"></div>
   </div>
 
+  <div id="appView" class="card hidden">
+    <div class="logo">🌊</div>
+    <h1 id="welcomeTitle">Cześć 👋</h1>
+    <p>Jesteś w nowej aplikacji BeachBar Miedwie.</p>
+
+    <button class="btn-danger" onclick="logout()">Wyloguj</button>
+  </div>
+
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycby6rQK89ooACcz7faroqmdpkGauP9MQl6y6e93PD6lhM0JIGPC5qE4RpBl7A6KMtgb6/exec';
 
     window.onload = function() {
       loadEmployees();
+      checkSavedEmployee();
     };
 
     function showMessage(text, type) {
@@ -150,12 +169,25 @@
             option.textContent = emp;
             select.appendChild(option);
           });
+
+          const savedEmployee = localStorage.getItem('employee');
+          if (savedEmployee) {
+            select.value = savedEmployee;
+          }
         })
         .catch(error => {
           select.innerHTML = '<option value="">Błąd ładowania</option>';
           showMessage('❌ Nie udało się pobrać pracowników.', 'error');
           console.error(error);
         });
+    }
+
+    function checkSavedEmployee() {
+      const savedEmployee = localStorage.getItem('employee');
+
+      if (savedEmployee) {
+        showAppView(savedEmployee);
+      }
     }
 
     function enterApp() {
@@ -166,7 +198,24 @@
         return;
       }
 
-      showMessage('✅ Wybrano: ' + employee, 'success');
+      localStorage.setItem('employee', employee);
+      showAppView(employee);
+    }
+
+    function showAppView(employee) {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('appView').classList.remove('hidden');
+      document.getElementById('welcomeTitle').innerText = 'Cześć ' + employee + ' 👋';
+    }
+
+    function logout() {
+      localStorage.removeItem('employee');
+
+      document.getElementById('appView').classList.add('hidden');
+      document.getElementById('loginView').classList.remove('hidden');
+
+      document.getElementById('employeeSelect').value = '';
+      document.getElementById('result').style.display = 'none';
     }
   </script>
 </body>
