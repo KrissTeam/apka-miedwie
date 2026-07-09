@@ -6,127 +6,135 @@
   <title>BeachBar Miedwie</title>
 
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --primary: #198754;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
     }
 
-    html, body {
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      width: 100%;
-      min-height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: linear-gradient(180deg, #e0f7ff 0%, #f8fafc 45%, #ffffff 100%);
-      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     body {
+      background: var(--bg);
+      color: var(--text-main);
       min-height: 100vh;
+      padding: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 22px;
     }
 
     .card {
       width: 100%;
-      max-width: 430px;
-      background: white;
-      border-radius: 28px;
-      padding: 30px 24px;
+      max-width: 420px;
+      background: var(--card-bg);
+      border-radius: 22px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
       text-align: center;
-      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
-      border: 1px solid #e2e8f0;
     }
 
     .logo {
-      font-size: 48px;
-      margin-bottom: 10px;
+      font-size: 42px;
+      margin-bottom: 8px;
     }
 
     h1 {
-      margin: 0;
-      font-size: 30px;
-      line-height: 1.15;
+      font-size: 24px;
       font-weight: 900;
-      color: #0f172a;
+      margin-bottom: 8px;
     }
 
-    .subtitle {
-      margin-top: 10px;
-      font-size: 16px;
-      line-height: 1.45;
-      color: #64748b;
-      font-weight: 600;
-    }
-
-    .features {
-      margin: 24px 0;
-      display: grid;
-      gap: 10px;
-      text-align: left;
+    p {
       font-size: 15px;
-      color: #334155;
-      font-weight: 700;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 18px;
     }
 
-    .feature {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 12px 14px;
-    }
-
-    .button {
-      display: block;
+    select {
       width: 100%;
-      text-decoration: none;
-      background: #198754;
+      height: 52px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      font-size: 16px;
+      font-weight: 700;
+      background: white;
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    button {
+      width: 100%;
+      height: 52px;
+      background: var(--primary);
       color: white;
-      font-size: 18px;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
       font-weight: 900;
-      padding: 17px 20px;
-      border-radius: 16px;
-      box-shadow: 0 10px 20px rgba(25, 135, 84, 0.25);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
     }
 
-    .button:active {
-      transform: scale(0.98);
-      box-shadow: 0 6px 14px rgba(25, 135, 84, 0.22);
-    }
-
-    .small {
+    #result {
       margin-top: 16px;
-      font-size: 12px;
-      color: #94a3b8;
+      padding: 12px;
+      border-radius: 12px;
+      background: #e8f5e9;
+      color: #198754;
+      font-weight: 800;
+      display: none;
     }
   </style>
 </head>
 
 <body>
-  <main class="card">
+  <div class="card">
     <div class="logo">🌊</div>
-
     <h1>BeachBar Miedwie</h1>
+    <p>Nowa aplikacja GitHub — test startowy</p>
 
-    <div class="subtitle">
-      Grafik, wolne i raporty pracowników
-    </div>
+    <select id="employeeSelect">
+      <option value="">Wybierz pracownika...</option>
+      <option value="ANIA">ANIA</option>
+      <option value="JULIA">JULIA</option>
+      <option value="WERONIKA">WERONIKA</option>
+      <option value="DYREKTOR">DYREKTOR</option>
+    </select>
 
-    <div class="features">
-      <div class="feature">📅 Sprawdź grafik</div>
-      <div class="feature">➕ Zgłoś wolne</div>
-      <div class="feature">📝 Wyślij raport dnia</div>
-    </div>
+    <button onclick="enterApp()">Wejdź do aplikacji</button>
 
-    <a class="button" href="https://script.google.com/macros/s/AKfycbw6r2N3Sy224yyNmi3TD7ry7RfH3uneL0Lq5Iwb2RDqiz_89yz-mSur6dlebQppQmh_/exec">
-      OTWÓRZ APLIKACJĘ
-    </a>
+    <div id="result"></div>
+  </div>
 
-    <div class="small">
-      Po kliknięciu otworzy się aplikacja BeachBar Miedwie.
-    </div>
-  </main>
+  <script>
+    function enterApp() {
+      const employee = document.getElementById('employeeSelect').value;
+      const result = document.getElementById('result');
+
+      if (!employee) {
+        result.style.display = 'block';
+        result.style.background = '#fde8e8';
+        result.style.color = '#dc3545';
+        result.innerText = '⚠️ Wybierz pracownika';
+        return;
+      }
+
+      result.style.display = 'block';
+      result.style.background = '#e8f5e9';
+      result.style.color = '#198754';
+      result.innerText = '✅ Wybrano: ' + employee;
+    }
+  </script>
 </body>
 </html>
