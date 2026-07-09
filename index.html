@@ -634,6 +634,12 @@ td.sum-ready {
 
   <div id="screen-szef-pracownicy" class="screen">
     <div class="card">
+      <h2>➕ Dodaj pracownika</h2>
+      <input type="text" id="newEmployeeName" placeholder="Wpisz imię pracownika..." style="margin-bottom:12px;">
+      <button class="btn-action" onclick="addEmployeeFromBoss()">➕ Dodaj pracownika</button>
+    </div>
+
+    <div class="card">
       <h2>👥 Statystyki pracowników</h2>
       <input type="text" id="bossEmployeeSearch" placeholder="🔍 Szukaj..." oninput="renderBossEmployeesView()" style="margin-bottom:12px;">
       <div id="bossEmployeesListContainer"></div>
@@ -1350,21 +1356,128 @@ function recalculateLiveSummary(containerId) {
     function renderBossEmployeesView() {
       const container = document.getElementById('bossEmployeesListContainer');
       const input = document.getElementById('bossEmployeeSearch');
-      const q = input ? input.value.toLowerCase() : '';
+      const q = input ? input.value.toLowerCase().trim() : '';
+
+      if (!container) return;
 
       container.innerHTML = '';
 
-      employeesList.filter(emp => emp.toLowerCase().includes(q)).forEach(emp => {
+      const filteredEmployees = employeesList.filter(emp => emp.toLowerCase().includes(q));
+
+      if (filteredEmployees.length === 0) {
+        container.innerHTML = '<div style="font-size:14px; color:var(--text-muted);">Brak pracowników.</div>';
+        return;
+      }
+
+      filteredEmployees.forEach(emp => {
         const div = document.createElement('div');
-        div.style.cssText = 'padding:12px; border:1px solid var(--border); margin-bottom:6px; border-radius:8px; background:' + (emp === bossTargetEmployee ? 'var(--primary-light)' : '#fff');
-        div.onclick = function() {
+        div.style.cssText =
+          'padding:12px; border:1px solid var(--border); margin-bottom:8px; border-radius:12px; background:' +
+          (emp === bossTargetEmployee ? 'var(--primary-light)' : '#fff');
+
+        const info = document.createElement('div');
+        info.style.cssText = 'cursor:pointer;';
+        info.onclick = function() {
           bossTargetEmployee = emp;
           setupActiveEmployeeData(emp);
+          renderBossEmployeesView();
           showToast('👤 Wybrano: ' + emp);
         };
-        div.innerHTML = `<strong>${emp}</strong><br><span style="font-size:12px; color:var(--text-muted)">Wolne: ${allEmployeesData[emp]?.absences?.length || 0} | Dyżury: ${allEmployeesData[emp]?.duties?.length || 0}</span>`;
+
+        info.innerHTML = `
+          <strong>${emp}</strong><br>
+          <span style="font-size:12px; color:var(--text-muted)">
+            Wolne: ${allEmployeesData[emp]?.absences?.length || 0}
+            | Dyżury: ${allEmployeesData[emp]?.duties?.length || 0}
+          </span>
+        `;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '🗑️ Usuń';
+        deleteBtn.style.cssText =
+          'width:100%; height:42px; margin-top:10px; border:none; border-radius:10px; background:var(--danger-light); color:var(--danger); font-weight:900; cursor:pointer;';
+
+        deleteBtn.onclick = function(event) {
+          event.stopPropagation();
+          deleteEmployeeFromBoss(emp);
+        };
+
+        div.appendChild(info);
+        div.appendChild(deleteBtn);
         container.appendChild(div);
       });
+    }
+
+    function addEmployeeFromBoss() {
+      const input = document.getElementById('newEmployeeName');
+      const name = input ? input.value.trim() : '';
+
+      if (!name) {
+        showToast('⚠️ Wpisz imię pracownika');
+        return;
+      }
+
+      showToast('⏳ Dodawanie pracownika...');
+
+      apiPost('addEmployee', {
+        name: name
+      })
+      .then(response => {
+        showToast('✅ ' + (response.message || 'Dodano pracownika'));
+        if (input) input.value = '';
+        return reloadDataAfterEmployeeChange(name);
+      })
+      .catch(error => {
+        showToast('❌ ' + error.message);
+      });
+    }
+
+    function deleteEmployeeFromBoss(name) {
+      const ok = confirm('Usunąć pracownika: ' + name + '?');
+
+      if (!ok) {
+        return;
+      }
+
+      showToast('⏳ Usuwanie pracownika...');
+
+      apiPost('deleteEmployee', {
+        name: name
+      })
+      .then(response => {
+        showToast('✅ ' + (response.message || 'Usunięto pracownika'));
+        return reloadDataAfterEmployeeChange('');
+      })
+      .catch(error => {
+        showToast('❌ ' + error.message);
+      });
+    }
+
+    function reloadDataAfterEmployeeChange(preferredEmployee) {
+      return apiGet('getBootstrap')
+        .then(data => {
+          employeesList = data.employees || [];
+          calendarDays = data.calendarDays || [];
+          allEmployeesData = data.allEmployeesData || {};
+          weatherForecast = data.weather || {};
+
+          buildEmployeeSelector();
+          buildBossDaySelect();
+
+          if (isBossMode) {
+            if (preferredEmployee && employeesList.includes(preferredEmployee)) {
+              bossTargetEmployee = preferredEmployee;
+            } else if (!employeesList.includes(bossTargetEmployee)) {
+              bossTargetEmployee = employeesList[0] || '';
+            }
+
+            setupActiveEmployeeData(bossTargetEmployee);
+          } else if (currentEmployee && employeesList.includes(currentEmployee)) {
+            setupActiveEmployeeData(currentEmployee);
+          }
+
+          renderCurrentTabView();
+        });
     }
 
     function renderBossReportsView() {
